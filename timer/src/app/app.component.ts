@@ -11,6 +11,7 @@ export class AppComponent {
   currentTime = '00:00:00';
 
   currentValue = 0;
+  clicks = 0;
 
   source$: Observable<number>;
   timer$: Subscription;
@@ -42,7 +43,15 @@ export class AppComponent {
   }
 
   pauseTimer(): void {
-    this.timer$.unsubscribe();
+    this.clicks++;
+    if (this.clicks === 1) {
+      setTimeout(() => {
+        if (this.clicks > 1) {
+          this.timer$.unsubscribe();
+        }
+        this.clicks = 0;
+      }, 300)
+    }
   }
 
   resetTimer(): void {
