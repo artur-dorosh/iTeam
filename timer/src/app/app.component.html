@@ -1,0 +1,15 @@
+<div>
+  <h1>
+    Welcome to {{ title }}!
+  </h1>
+</div>
+
+<div>
+  <h2>
+    {{ currentTime }}
+  </h2>
+  <button class="btn" (click)="startTimer(currentValue)">Start</button>
+  <button class="btn" (click)="stopTimer()">Stop</button>
+  <button class="btn" (dblclick)='pauseTimer()'>Wait</button>
+  <button class="btn" (click)="resetTimer()">Reset</button>
+</div>
