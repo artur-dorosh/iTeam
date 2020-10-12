@@ -8,8 +8,7 @@ import { buffer, debounceTime, filter, takeUntil, tap } from 'rxjs/operators';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit, OnDestroy {
-  currentTime = '00:00:00';
-  currentValue = 0;
+  currentTime = 0;
 
   private source$ = timer(0, 1000);
   private onDestroyed$ = new Subject<any>();
@@ -28,36 +27,21 @@ export class AppComponent implements OnInit, OnDestroy {
   startTimer(startFrom: number): void {
     this.source$.pipe(
       takeUntil(this.onDestroyed$),
-      tap(value => {
-        this.currentTime = this.getCurrentTime(
-          new Date(0, 0, 0 , 0, 0, value + startFrom)
-        );
-        this.currentValue = value + startFrom;
-      })
+      tap(value => this.currentTime = value + startFrom)
     ).subscribe();
   }
 
   stopTimer(): void {
     this.onDestroyed$.next();
-    this.currentTime = '00:00:00';
-    this.currentValue = 0;
+    this.currentTime = 0;
   }
 
   resetTimer(): void {
-    this.currentTime = '00:00:00';
-    this.currentValue = 0;
+    this.currentTime = 0;
   }
 
   ngOnDestroy(): void {
     this.onDestroyed$.next();
     this.onDestroyed$.complete();
-  }
-
-  private getCurrentTime(date: Date): string {
-    const currentHours = date.getHours() < 10 ? '0' + date.getHours() : date.getHours();
-    const currentMinutes = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes();
-    const currentSeconds = date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds();
-
-    return `${currentHours}:${currentMinutes}:${currentSeconds}`;
   }
 }

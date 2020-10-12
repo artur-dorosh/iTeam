@@ -1,8 +1,8 @@
 <div>
   <h2>
-    {{ currentTime }}
+    {{ currentTime * 1000 | date:'HH:mm:ss':'+0000' }}
   </h2>
-  <button class="btn" (click)="startTimer(currentValue)">Start</button>
+  <button class="btn" (click)="startTimer(currentTime)">Start</button>
   <button class="btn" (click)="stopTimer()">Stop</button>
   <button class="btn wait-btn">Wait</button>
   <button class="btn" (click)="resetTimer()">Reset</button>
