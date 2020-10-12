@@ -1,61 +1,63 @@
-import {Component} from '@angular/core';
-import {Observable, Subscription, timer} from "rxjs";
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { fromEvent, Subject, timer } from 'rxjs';
+import { buffer, debounceTime, filter, takeUntil, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent {
-  title = 'Timer';
+export class AppComponent implements OnInit, OnDestroy {
   currentTime = '00:00:00';
-
   currentValue = 0;
-  clicks = 0;
 
-  source$: Observable<number>;
-  timer$: Subscription;
+  private source$ = timer(0, 1000);
+  private onDestroyed$ = new Subject<any>();
 
-  constructor() {
-    this.source$ = timer(0, 1000);
-  }
+  constructor() { }
 
-  getCurrentTime(date: Date): string {
-    let currentHours = date.getHours() < 10 ? '0' + date.getHours() : date.getHours();
-    let currentMinutes = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes();
-    let currentSeconds = date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds();
+  ngOnInit(): void {
+    const clicks$ = fromEvent(document.querySelector('.wait-btn'), 'click');
 
-    return `${currentHours}:${currentMinutes}:${currentSeconds}`;
+    clicks$.pipe(
+      buffer(clicks$.pipe(debounceTime(300))),
+      filter(value => value.length > 1)
+    ).subscribe(() => this.onDestroyed$.next());
   }
 
   startTimer(startFrom: number): void {
-    this.timer$ = this.source$.subscribe(vl => {
-        this.currentTime = this.getCurrentTime(new Date(0, 0, 0 , 0, 0, vl + startFrom))
-        this.currentValue = vl + startFrom;
-      }
-    );
+    this.source$.pipe(
+      takeUntil(this.onDestroyed$),
+      tap(value => {
+        this.currentTime = this.getCurrentTime(
+          new Date(0, 0, 0 , 0, 0, value + startFrom)
+        );
+        this.currentValue = value + startFrom;
+      })
+    ).subscribe();
   }
 
   stopTimer(): void {
-    this.timer$.unsubscribe();
+    this.onDestroyed$.next();
     this.currentTime = '00:00:00';
     this.currentValue = 0;
-  }
-
-  pauseTimer(): void {
-    this.clicks++;
-    if (this.clicks === 1) {
-      setTimeout(() => {
-        if (this.clicks > 1) {
-          this.timer$.unsubscribe();
-        }
-        this.clicks = 0;
-      }, 300)
-    }
   }
 
   resetTimer(): void {
     this.currentTime = '00:00:00';
     this.currentValue = 0;
+  }
+
+  ngOnDestroy(): void {
+    this.onDestroyed$.next();
+    this.onDestroyed$.complete();
+  }
+
+  private getCurrentTime(date: Date): string {
+    const currentHours = date.getHours() < 10 ? '0' + date.getHours() : date.getHours();
+    const currentMinutes = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes();
+    const currentSeconds = date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds();
+
+    return `${currentHours}:${currentMinutes}:${currentSeconds}`;
   }
 }
